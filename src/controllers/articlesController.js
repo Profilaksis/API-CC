@@ -20,7 +20,7 @@ const addArticle = async (req, res) => {
 
     if (!req.file || !req.file.path) {
       return res.status(400).json({
-        error: 'Image is required!n',
+        error: 'Image is required!',
       });
     }
 
