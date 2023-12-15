@@ -14,13 +14,13 @@ const addArticle = async (req, res) => {
 
     if (!title || !tags || !content) {
       return res.status(400).json({
-        error: 'Title, Tags, Content is required',
+        error: 'Judul, tags, dan content diperlukan',
       });
     }
 
     if (!req.file || !req.file.path) {
       return res.status(400).json({
-        error: 'Image is required!',
+        error: 'File gambar diperlukan',
       });
     }
 
@@ -47,32 +47,35 @@ const addArticle = async (req, res) => {
       db.query(query, values, (dbErr, result) => {
         if (dbErr) {
           console.error(dbErr);
-          return res.status(500).json({ error: 'Internal server error!', details: dbErr.message });
+          return res.status(500).json({ error: 'Terjadi kesalahan server', details: dbErr.message });
         }
 
-        return res.status(201).json({ message: 'Article added successfully' });
+        return res.status(201).json({ message: 'Artikel berhasil ditambahkan' });
       });
     });
 
     localReadStream.pipe(stream);
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Internal server error!', details: error.message });
+    return res.status(500).json({ error: 'Terjadi kesalahan server', details: error.message });
   }
 };
+
+
+
 
 const getAllArticles = (req, res) => {
   try {
     Articles.getAllArticles((err, articles) => {
       if (err) {
         console.error(err);
-        return res.status(500).json({ error: 'Internal server error!' });
+        return res.status(500).json({ error: 'Terjadi kesalahan server' });
       }
       return res.status(200).json(articles);
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Internal server error!' });
+    return res.status(500).json({ error: 'Terjadi kesalahan server' });
   }
 };
 
@@ -83,18 +86,18 @@ const getArticlesById = (req, res) => {
       Articles.getArticleById(articleId, (err, article) => {
         if (err) {
           console.error(err);
-          return res.status(500).json({ error: 'Internal server error!' });
+          return res.status(500).json({ error: 'Terjadi kesalahan server' });
         }
   
         if (!article) {
-          return res.status(404).json({ error: 'Article not found' });
+          return res.status(404).json({ error: 'Artikel tidak ditemukan' });
         }
   
         return res.status(200).json(article);
       });
     } catch (error) {
       console.error(error);
-      return res.status(500).json({ error: 'Internal server error!' });
+      return res.status(500).json({ error: 'Terjadi kesalahan server' });
     }
 };
 
@@ -105,14 +108,14 @@ const getArticlesByTags = (req, res) => {
       Articles.getArticlesByTags(tags, (err, articles) => {
         if (err) {
           console.error(err);
-          return res.status(500).json({ error: 'Internal server error!' });
+          return res.status(500).json({ error: 'Terjadi kesalahan server' });
         }
   
         return res.status(200).json(articles);
       });
     } catch (error) {
       console.error(error);
-      return res.status(500).json({ error: 'Internal server error!' });
+      return res.status(500).json({ error: 'Terjadi kesalahan server' });
     }
 };
 
@@ -124,12 +127,13 @@ const editArticle = async (req, res) => {
 
     if (!title || !tags || !content) {
       return res.status(400).json({
-        error: 'Title, Tags, Content is required',
+        error: 'Judul, tags, dan content diperlukan',
       });
     }
 
     const image = req.file;
 
+    // Check if an image is provided
     if (image) {
       const { originalname } = image;
       const localReadStream = require('fs').createReadStream(image.path);
@@ -148,36 +152,38 @@ const editArticle = async (req, res) => {
       stream.on('finish', async () => {
         const imageUrl = `https://storage.googleapis.com/${bucket.name}/${originalname}`;
 
+        // Update the article with the new image URL
         const updateQuery = 'UPDATE articles SET title = ?, image_url = ?, tags = ?, content = ? WHERE id = ?';
         const updateValues = [title, imageUrl, tags, content, articleId];
 
         db.query(updateQuery, updateValues, (updateErr, updateResult) => {
           if (updateErr) {
             console.error(updateErr);
-            return res.status(500).json({ error: 'Internal server error!' });
+            return res.status(500).json({ error: 'Terjadi kesalahan server' });
           }
 
-          return res.status(200).json({ message: 'Internal server error!' });
+          return res.status(200).json({ message: 'Artikel berhasil diupdate' });
         });
       });
 
       localReadStream.pipe(stream);
     } else {
+      // Update the article without changing the image
       const updateQuery = 'UPDATE articles SET title = ?, tags = ?, content = ? WHERE id = ?';
       const updateValues = [title, tags, content, articleId];
 
       db.query(updateQuery, updateValues, (updateErr, updateResult) => {
         if (updateErr) {
           console.error(updateErr);
-          return res.status(500).json({ error: 'Internal server error!' });
+          return res.status(500).json({ error: 'Terjadi kesalahan server' });
         }
 
-        return res.status(200).json({ message: 'Article successfully updated' });
+        return res.status(200).json({ message: 'Artikel berhasil diupdate' });
       });
     }
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: 'Internal server error!' });
+    return res.status(500).json({ error: 'Terjadi kesalahan server' });
   }
 };
 const deleteArticle = (req, res) => {
@@ -187,18 +193,18 @@ const deleteArticle = (req, res) => {
       Articles.deleteArticle(articleId, (err, result) => {
         if (err) {
           console.error('Error deleting article:', err);
-          return res.status(500).json({ error: 'Internal server error!' });
+          return res.status(500).json({ error: 'Terjadi kesalahan server' });
         }
   
         if (!result) {
-          return res.status(404).json({ error: 'Article not found' });
+          return res.status(404).json({ error: 'Artikel tidak ditemukan' });
         }
   
-        return res.status(200).json({ message: 'Article added successfully' });
+        return res.status(200).json({ message: 'Artikel berhasil dihapus' });
       });
     } catch (error) {
       console.error('Error deleting article:', error);
-      return res.status(500).json({ error: 'Internal server error!' });
+      return res.status(500).json({ error: 'Terjadi kesalahan server' });
     }
 };
   

@@ -62,7 +62,12 @@ async function login(req, res) {
     const token = generateToken({ username: user.username, email: user.email });
 
     // kirim data dengan token
-    res.status(200).json({ message: 'Login successful', token, profile: user });
+    res.status(200).json({ 
+    message: 'Login Sukses', 
+    token, 
+    role: user.role,
+    username: user.username, 
+    profile: user });
   });
 }
 

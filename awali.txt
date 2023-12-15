@@ -1,0 +1,17 @@
+GAOLEH DI UPLOAD GITHUB
+- KEY.JSON
+- CONFIG.JS
+- DLL BERBAU INFORMASI SENSITIF
+
+npm install ekspress
+npm install mysql
+npm intsall multer
+npm install @google-cloud/storage
+
+gcp tutorial
+open cloud console
+gcloud sql connect profilaksis-capstone --user=root
+password: profilaksis2023
+
+mysql
+use profilasksis

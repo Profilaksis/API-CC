@@ -4,6 +4,8 @@ const db = require('../database/db');
 const { Storage } = require('@google-cloud/storage');
 const multer = require('multer');
 
+
+// Inisialisasi Cloud Storage
 const storage = new Storage({
   projectId: 'profilaksis-capstone',
   keyFilename: './src/controllers/key.json',
@@ -19,7 +21,7 @@ async function getProfile(req, res) {
   db.query(query, values, (error, results) => {
     if (error) {
       console.error(error);
-      return res.status(500).json({ message: 'Internal server error!' });
+      return res.status(500).json({ message: 'Internal server error' });
     }
 
     const user = results[0];
@@ -45,7 +47,7 @@ async function editProfile(req, res) {
     db.query(getUserQuery, getUserValues, async (error, results) => {
       if (error) {
         console.error(error);
-        return res.status(500).json({ message: 'Internal server error!' });
+        return res.status(500).json({ message: 'Internal server error' });
       }
 
       const user = results[0];
@@ -81,7 +83,7 @@ async function editProfile(req, res) {
           db.query(updateUserQuery, updateUserValues, (updateError) => {
             if (updateError) {
               console.error(updateError);
-              return res.status(500).json({ message: 'Internal server error!' });
+              return res.status(500).json({ message: 'Internal server error' });
             }
 
             res.status(200).json({ message: 'Profile updated successfully' });
@@ -106,7 +108,7 @@ async function editProfile(req, res) {
         db.query(updateUserQuery, updateUserValues, (updateError) => {
           if (updateError) {
             console.error(updateError);
-            return res.status(500).json({ message: 'Internal server error!' });
+            return res.status(500).json({ message: 'Internal server error' });
           }
 
           res.status(200).json({ message: 'Profile updated successfully' });

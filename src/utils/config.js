@@ -16,7 +16,7 @@ module.exports = {
 //     port: '3306',
 //     user: 'root',
 //     password: '',
-//     database: 'test',
+//     database: 'test_gamabr',
 //     port: 3306,
 //   },
 // };
