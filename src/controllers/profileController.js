@@ -30,7 +30,18 @@ async function getProfile(req, res) {
       return res.status(404).json({ message: 'User profile not found' });
     }
 
-    res.status(200).json({ profile: user });
+    res.status(200).json(
+      {message: 'GET Profile successfully', 
+      data: { 
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      avatar: user.photo_url,
+      address: user.address,
+      age: user.age,
+      phone_number: user.phone_number,
+    } });
   });
 }
 

@@ -12,18 +12,26 @@ const loadModelHeart = async () => {
 // Function to save prediction results to the history table
 async function savePredictionToHistory(username, prediction) {
   try {
-    const healthStatus = prediction <= 50 ? 'Sehat' : 'Tidak Sehat';
-    const kategoriPenyakit = 'Sakit Jantung';
-    let keterangan = '';
+    let healthStatus = '';
+    let description = '';
 
-    if (healthStatus === 'Sehat') {
-      keterangan = 'Anda sudah sehat. Untuk mempertahankan kesehatan jantung, disarankan untuk menjaga pola makan yang sehat dan aktifitas fisik secara teratur.';
+    const roundedPrediction = Math.round(prediction);
+
+    if (roundedPrediction <= 30) {
+      healthStatus = 'Healthy';
+      description = 'Keep it up! Your heart is healthy. Maintain a healthy diet and regular physical activity.';
+    } else if (roundedPrediction <= 70) {
+      healthStatus = 'Average';
+      description = 'Your heart health is average. Consider adopting healthier lifestyle choices, such as improving your diet and increasing physical activity.';
     } else {
-      keterangan = 'Anda mungkin berisiko terkena penyakit jantung. Disarankan untuk menghindari merokok, mengurangi konsumsi alkohol, dan berkonsultasi dengan dokter untuk pemeriksaan lebih lanjut.';
+      healthStatus = 'Unhealthy';
+      description = 'Consultation is recommended. You may be at a higher risk of heart disease. It is advised to avoid smoking, reduce alcohol consumption, and consult with a doctor for further examination.';
     }
 
-    const insertQuery = 'INSERT INTO health_history (username, prediction_result, health_status, kategori_penyakit, keterangan) VALUES (?, ?, ?, ?, ?)';
-    const insertValues = [username, prediction, healthStatus, kategoriPenyakit, keterangan];
+    const diseaseCategory = 'Heart Disease';
+
+    const insertQuery = 'INSERT INTO health_history (username, prediction_result, health_status, disease_category, description) VALUES (?, ?, ?, ?, ?)';
+    const insertValues = [username, prediction, healthStatus, diseaseCategory, description];
 
     db.query(insertQuery, insertValues, (error, result) => {
       if (error) {
@@ -36,6 +44,7 @@ async function savePredictionToHistory(username, prediction) {
     console.error('Error saving prediction to history:', error);
   }
 }
+
 
 const predictHeartDisease = async (req, res) => {
   try {
@@ -72,13 +81,33 @@ const predictHeartDisease = async (req, res) => {
     const prediction = model.predict(input).dataSync()[0];
     const roundedPrediction = Math.round(prediction * 100);
 
+    let healthStatus, keterangan;
+    
+    if (roundedPrediction <= 30) {
+      healthStatus = 'Healthy';
+      keterangan = 'Keep it up! Your heart is healthy. Maintain a healthy diet and regular physical activity.';
+    } else if (roundedPrediction <= 70) {
+      healthStatus = 'Average';
+      keterangan = 'Your heart health is average. Consider adopting healthier lifestyle choices, such as improving your diet and increasing physical activity.';
+    } else {
+      healthStatus = 'Unhealthy';
+      keterangan = 'Consultation is recommended. You may be at a higher risk of heart disease. It is advised to avoid smoking, reduce alcohol consumption, and consult with a doctor for further examination.';
+    }
+
     // Save prediction results to the history table
     const token = req.header('Authorization');
     const decodedToken = verifyToken(token);
     const { username } = decodedToken;
 
     await savePredictionToHistory(username, roundedPrediction);
-    res.json({ prediction: roundedPrediction, message: 'Prediction saved successfully' });
+    res.json({
+      message: 'Heart disease prediction saved successfully',
+      data: { 
+      prediction: roundedPrediction, 
+      healthStatus: healthStatus,
+      keterangan: keterangan,
+      }
+    });
   } catch (error) {
     console.error('Error:', error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -90,17 +119,26 @@ const loadModelDiabetes = async () => {
   const model = await tf.loadLayersModel(`https://profilaksis-llgpy7csea-as.a.run.app/diabetes/model.json`);
   return model;
 };
+
 async function savePredictionDiabetesToHistory(username, prediction) {
   try {
-    const healthStatus = prediction <= 50 ? 'Tidak Diabetic' : 'Diabetic';
-    const kategoriPenyakit = 'Diabetes';
+    let healthStatus = '';
     let keterangan = '';
 
-    if (healthStatus === 'Tidak Diabetic') {
-      keterangan = 'Anda tidak mengalami diabetes. Tetap pertahankan pola makan yang sehat dan aktifitas fisik secara teratur.';
+    const roundedPrediction = Math.round(prediction);
+
+    if (roundedPrediction <= 30) {
+      healthStatus = 'Healthy';
+      keterangan = 'Keep it up! You do not have diabetes. Maintain a healthy diet and regular physical activity.';
+    } else if (roundedPrediction <= 70) {
+      healthStatus = 'Average';
+      keterangan = 'Your risk of diabetes is average. Consider controlling sugar intake, maintaining body weight, and adopting a healthier lifestyle.';
     } else {
-      keterangan = 'Anda mungkin memiliki risiko diabetes. Disarankan untuk mengontrol asupan gula, menjaga berat badan, dan berkonsultasi dengan dokter untuk pemeriksaan lebih lanjut.';
+      healthStatus = 'Unhealthy';
+      keterangan = 'Consultation is recommended. You may be at a higher risk of diabetes. It is advised to control sugar intake, maintain body weight, and consult with a doctor for further examination.';
     }
+
+    const kategoriPenyakit = 'Diabetes';
 
     const insertQuery = 'INSERT INTO health_history (username, prediction_result, health_status, kategori_penyakit, keterangan) VALUES (?, ?, ?, ?, ?)';
     const insertValues = [username, prediction, healthStatus, kategoriPenyakit, keterangan];
@@ -116,6 +154,7 @@ async function savePredictionDiabetesToHistory(username, prediction) {
     console.error('Error saving diabetes prediction to history:', error);
   }
 }
+
 
 const predictDiabetesDisease = async (req, res) => {
   try {
@@ -152,13 +191,31 @@ const predictDiabetesDisease = async (req, res) => {
     const prediction = model.predict(input).dataSync()[0];
     const roundedPrediction = Math.round(prediction * 100);
 
+    let healthStatus, keterangan;
+    
+    if (roundedPrediction <= 30) {
+      healthStatus = 'Healthy';
+      keterangan = 'Keep it up! You do not have diabetes. Maintain a healthy diet and regular physical activity.';
+    } else if (roundedPrediction <= 70) {
+      healthStatus = 'Average';
+      keterangan = 'Your risk of diabetes is average. Consider controlling sugar intake, maintaining body weight, and adopting a healthier lifestyle.';
+    } else {
+      healthStatus = 'Unhealthy';
+      keterangan = 'Consultation is recommended. You may be at a higher risk of diabetes. It is advised to control sugar intake, maintain body weight, and consult with a doctor for further examination.';
+    }
     // Save diabetes prediction results to the history table
     const token = req.header('Authorization');
     const decodedToken = verifyToken(token);
     const { username } = decodedToken;
 
     await savePredictionDiabetesToHistory(username, roundedPrediction);
-    res.json({ prediction: roundedPrediction, message: 'Diabetes prediction saved successfully' });
+    res.json({
+      message: 'Diabetes prediction saved successfully',data:{ 
+      prediction: roundedPrediction, 
+      healthStatus: healthStatus,
+      keterangan: keterangan,
+       
+    }});
   } catch (error) {
     console.error('Error:', error);
     res.status(500).json({ error: 'Internal Server Error' });

@@ -8,7 +8,7 @@ async function register(req, res) {
   const { username, email, password, confirmPassword } = req.body;
 
   if (password !== confirmPassword) {
-    return res.status(400).json({ message: 'Password dan konfirmasi password tidak sama' });
+    return res.status(400).json({ message: 'Password and password confirmation do not match' });
   }
 
   try {
@@ -23,7 +23,7 @@ async function register(req, res) {
       }
 
       if (results.length > 0) {
-        return res.status(400).json({ message: 'Username atau email telah digunakan' });
+        return res.status(400).json({ message: 'Username or email is already in use' });
       }
 
       // jika tidak ada yang sama
@@ -32,7 +32,7 @@ async function register(req, res) {
 
       const token = generateToken({ username, email });
 
-      res.status(201).json({ message: 'Registrasi Berhasil', token });
+      res.status(201).json({ message: 'Registration successful'});
     });
   } catch (error) {
     console.error(error);
@@ -44,7 +44,7 @@ async function register(req, res) {
 async function login(req, res) {
   const { username, password } = req.body;
 
-  const query = 'SELECT * FROM users WHERE username = ? AND password = ?';
+  const query = 'SELECT id,username,email,role,photo_url FROM users WHERE username = ? AND password = ?';
   const values = [username, password];
 
   db.query(query, values, (error, results) => {
@@ -61,13 +61,18 @@ async function login(req, res) {
 
     const token = generateToken({ username: user.username, email: user.email });
 
-    // kirim data dengan token
+    // Include the token directly in the data field with double quotes
     res.status(200).json({ 
-    message: 'Login Sukses', 
-    token, 
-    role: user.role,
-    username: user.username, 
-    profile: user });
+      message: 'Login successful',  
+      data: { 
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        avatar: user.photo_url,
+        token: token,
+      },
+    });
   });
 }
 
@@ -80,7 +85,7 @@ function logout(req, res) {
     if (!token) {
       blacklistedTokens.add(token); 
       console.log('Token not provided, but blacklisted successfully');
-      return res.status(200).json({ message: 'Logout Sukses' });
+      return res.status(200).json({ message: 'Logout successful' });
     }
 
     console.log('Verifying token:', token);
@@ -92,7 +97,7 @@ function logout(req, res) {
 
     blacklistedTokens.add(token); 
     console.log('Logout Request Received for:', decodedToken.username);
-    res.status(200).json({ message: 'Logout Sukses' });
+    res.status(200).json({ message: 'Logout successful' });
   } catch (error) {
     console.error(error);
     res.status(403).json({ message: 'Invalid token' });
