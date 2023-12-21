@@ -1,6 +1,7 @@
 const { Storage } = require('@google-cloud/storage');
 const db = require('../database/db');
 const Articles = require('../models/Articles');
+const { verifyToken } = require('../utils/jwt');
 
 const storage = new Storage({
   projectId: 'profilaksis-capstone',
@@ -10,7 +11,29 @@ const bucket = storage.bucket('profilaksis-test');
 
 const addArticle = async (req, res) => {
   try {
-    const { title, tags, content, source_url } = req.body;
+    const token = req.header('Authorization');
+    const decodedToken = verifyToken(token);
+    const { username } = decodedToken;
+    const roleQuery = 'SELECT role FROM users WHERE username = ?';
+
+    const roleResult = await new Promise((resolve, reject) => {
+      db.query(roleQuery, [username], (error, results) => {
+        if (error) {
+          console.error(error);
+          reject(error);
+        } else {
+          resolve(results);
+        }
+      });
+    });
+
+    const userRole = roleResult[0]?.role;
+
+    if (userRole !== 'admin') {
+      return res.status(403).json({ message: 'You do not have permission to add articles' });
+    }
+
+    const { title, tags, content, source_url, author } = req.body;
 
     if (!title || !tags || !content) {
       return res.status(400).json({
@@ -41,8 +64,8 @@ const addArticle = async (req, res) => {
     stream.on('finish', async () => {
       const imageUrl = `https://storage.googleapis.com/${bucket.name}/${originalname}`;
 
-      const query = 'INSERT INTO articles (title, image_url, tags, content, source_url) VALUES (?, ?, ?, ?, ?)';
-      const values = [title, imageUrl, tags, content, source_url];
+      const query = 'INSERT INTO articles (title, image_url, tags, content, source_url, author) VALUES (?, ?, ?, ?, ?, ?)';
+      const values = [title, imageUrl, tags, content, source_url, decodedToken.username];
 
       db.query(query, values, (dbErr, result) => {
         if (dbErr) {
@@ -119,9 +142,31 @@ const getArticlesByTags = (req, res) => {
 
 const editArticle = async (req, res) => {
   try {
+    const token = req.header('Authorization');
+    const decodedToken = verifyToken(token);
+    const { username } = decodedToken;
+    const roleQuery = 'SELECT role FROM users WHERE username = ?';
+
+    const roleResult = await new Promise((resolve, reject) => {
+      db.query(roleQuery, [username], (error, results) => {
+        if (error) {
+          console.error(error);
+          reject(error);
+        } else {
+          resolve(results);
+        }
+      });
+    });
+
+    const userRole = roleResult[0]?.role;
+
+    if (userRole !== 'admin') {
+      return res.status(403).json({ message: 'You do not have permission to add articles' });
+    }
+
     console.log(req.file);
     const articleId = req.params.id;
-    const { title, tags, content, source_url } = req.body;
+    const { title, tags, content, source_url, author } = req.body;
 
     if (!title || !tags || !content) {
       return res.status(400).json({
@@ -150,9 +195,9 @@ const editArticle = async (req, res) => {
       stream.on('finish', async () => {
         const imageUrl = `https://storage.googleapis.com/${bucket.name}/${originalname}`;
 
-        // Update the article with the new image URL
-        const updateQuery = 'UPDATE articles SET title = ?, image_url = ?, tags = ?, content = ?, source_url = ? WHERE id = ?';
-        const updateValues = [title, imageUrl, tags, content, source_url, articleId];
+        // Update the article with the new image URL and author
+        const updateQuery = 'UPDATE articles SET title = ?, image_url = ?, tags = ?, content = ?, source_url = ?, author = ? WHERE id = ?';
+        const updateValues = [title, imageUrl, tags, content, source_url, decodedToken.username, articleId];
 
         db.query(updateQuery, updateValues, (updateErr, updateResult) => {
           if (updateErr) {
@@ -166,9 +211,9 @@ const editArticle = async (req, res) => {
 
       localReadStream.pipe(stream);
     } else {
-      // Update the article without changing the image
-      const updateQuery = 'UPDATE articles SET title = ?, tags = ?, content = ?, source_url = ? WHERE id = ?';
-      const updateValues = [title, tags, content, source_url, articleId];
+      // Update the article without changing the image and include the author
+      const updateQuery = 'UPDATE articles SET title = ?, tags = ?, content = ?, source_url = ?, author = ? WHERE id = ?';
+      const updateValues = [title, tags, content, source_url, author, articleId];
 
       db.query(updateQuery, updateValues, (updateErr, updateResult) => {
         if (updateErr) {
@@ -185,8 +230,30 @@ const editArticle = async (req, res) => {
   }
 };
 
-const deleteArticle = (req, res) => {
+const deleteArticle = async (req, res) => {
   try {
+    const token = req.header('Authorization');
+    const decodedToken = verifyToken(token);
+    const { username } = decodedToken;
+    const roleQuery = 'SELECT role FROM users WHERE username = ?';
+
+    const roleResult = await new Promise((resolve, reject) => {
+      db.query(roleQuery, [username], (error, results) => {
+        if (error) {
+          console.error(error);
+          reject(error);
+        } else {
+          resolve(results);
+        }
+      });
+    });
+
+    const userRole = roleResult[0]?.role;
+
+    if (userRole !== 'admin') {
+      return res.status(403).json({ message: 'You do not have permission to delete articles' });
+    }
+
     const articleId = req.params.id;
 
     Articles.deleteArticle(articleId, (err, result) => {

@@ -5,6 +5,7 @@ const { verifyToken } = require('../utils/jwt');
 // Load the TensorFlow.js model
 const loadModelHeart = async () => {
   const model = await tf.loadLayersModel(`https://profilaksis-llgpy7csea-as.a.run.app/heart/model.json`);
+  // const model = await tf.loadLayersModel(`http://localhost:3000/heart/model.json`);
   return model;
 };
 
@@ -28,10 +29,10 @@ async function savePredictionToHistory(username, prediction) {
       description = 'Consultation is recommended. You may be at a higher risk of heart disease. It is advised to avoid smoking, reduce alcohol consumption, and consult with a doctor for further examination.';
     }
 
-    const diseaseCategory = 'Heart Disease';
+    const kategoriPenyakit = 'Diabetes';
 
-    const insertQuery = 'INSERT INTO health_history (username, prediction_result, health_status, disease_category, description) VALUES (?, ?, ?, ?, ?)';
-    const insertValues = [username, prediction, healthStatus, diseaseCategory, description];
+    const insertQuery = 'INSERT INTO health_history (username, prediction_result, health_status, kategori_penyakit, keterangan) VALUES (?, ?, ?, ?, ?)';
+    const insertValues = [username, prediction, healthStatus, kategoriPenyakit, description];
 
     db.query(insertQuery, insertValues, (error, result) => {
       if (error) {
@@ -117,6 +118,7 @@ const predictHeartDisease = async (req, res) => {
 
 const loadModelDiabetes = async () => {
   const model = await tf.loadLayersModel(`https://profilaksis-llgpy7csea-as.a.run.app/diabetes/model.json`);
+  // const model = await tf.loadLayersModel(`http://localhost:3000/diabetes/model.json`);
   return model;
 };
 
