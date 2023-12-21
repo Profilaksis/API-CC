@@ -4,7 +4,7 @@
 
 
 # Architecture Application
-![alt text](https://drive.google.com/file/d/1gh20fD3iXNVl2ZJwP2L-Wsd-PXASHYps/view?usp=sharing)
+![Image Description](https://drive.google.com/uc?export=view&id=1gh20fD3iXNVl2ZJwP2L-Wsd-PXASHYps)
 
 # Documentation
 - Create a REST API with node.js as backend and Express JS framework for private API, authentication and authorization by implementing jwt
